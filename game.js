@@ -1,175 +1,154 @@
 let ga, vit, clicks, targetX, targetY, score;
+let audioCtx;
 
-// --- 1. HỆ THỐNG ÂM THANH (Web Audio API) ---
-// Trình duyệt yêu cầu tương tác người dùng trước khi phát âm thanh
-const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+function initAudio() {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+}
 
 function playSound(freq, type, duration) {
-    try {
-        const oscillator = audioCtx.createOscillator();
-        const gainNode = audioCtx.createGain();
-        oscillator.type = type;
-        oscillator.frequency.setValueAtTime(freq, audioCtx.currentTime);
-        oscillator.connect(gainNode);
-        gainNode.connect(audioCtx.destination);
-        gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
-        oscillator.start();
-        oscillator.stop(audioCtx.currentTime + duration);
-    } catch (e) { console.log("Audio not allowed yet"); }
+    if (!audioCtx) return;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+    osc.start(); osc.stop(audioCtx.currentTime + duration);
 }
 
 const sounds = {
     click: () => playSound(600, 'sine', 0.1),
-    success: () => { 
-        playSound(800, 'square', 0.1); 
-        setTimeout(() => playSound(1000, 'square', 0.1), 100); 
-    },
+    success: () => { playSound(800, 'square', 0.1); setTimeout(() => playSound(1000, 'square', 0.1), 100); },
     fail: () => playSound(200, 'sawtooth', 0.3),
-    win: () => { 
-        [440, 554, 659, 880].forEach((f, i) => 
-            setTimeout(() => playSound(f, 'sine', 0.4), i * 150)
-        ); 
-    }
+    win: () => [440, 554, 659, 880].forEach((f, i) => setTimeout(() => playSound(f, 'sine', 0.4), i * 150))
 };
 
-// --- 2. QUẢN LÝ GIAO DIỆN ---
-function showElement(id) { document.getElementById(id).classList.remove('hidden'); }
-function hideElement(id) { document.getElementById(id).classList.add('hidden'); }
-
-// Bắt đầu từ màn hình giới thiệu
 window.startGame = function() {
-    if (audioCtx.state === 'suspended') audioCtx.resume();
-    sounds.click();
-    hideElement('story-intro');
-    showElement('phase1');
+    initAudio(); sounds.click();
+    document.getElementById('story-intro').classList.add('hidden');
+    document.getElementById('phase1').classList.remove('hidden');
 };
 
-// Chơi lại (Bỏ qua giới thiệu)
 window.restartGame = function() {
     sounds.click();
     score = 0;
-    clicks = Math.floor(Math.random() * 4) + 3;
+    // Ngẫu nhiên số lượt mổ từ 3 đến 6 lượt để tạo độ khó khác nhau mỗi ván
+    clicks = Math.floor(Math.random() * 4) + 3; 
     generateProblem();
-
-    hideElement('phase2');
-    hideElement('final-stats');
-    showElement('phase1');
-    showElement('action-buttons');
-
+    
+    document.getElementById('phase2').classList.add('hidden');
+    document.getElementById('final-stats').classList.add('hidden');
+    document.getElementById('phase1').classList.remove('hidden');
+    document.getElementById('p1-feedback').innerText = '';
     document.getElementById('inputX').value = '';
     document.getElementById('inputY').value = '';
-    document.getElementById('p1-feedback').innerText = '';
-    document.getElementById('game-log').innerText = "Vòng mới! Tính toán nhanh để bắt đầu. 🔪";
-    document.getElementById('game-log').style.color = "#2d3436";
+    
+    // Cập nhật hiển thị Kỷ lục vĩnh viễn trên Header nếu có
+    if (typeof refreshPermanentHighScore === "function") refreshPermanentHighScore();
 };
 
-// Khởi tạo ban đầu
-function initGame() {
-    score = 0;
-    clicks = Math.floor(Math.random() * 4) + 3;
-    generateProblem();
-
-    showElement('story-intro');
-    hideElement('phase1');
-    hideElement('phase2');
-    hideElement('final-stats');
-    showElement('action-buttons');
-}
-
-window.onload = initGame;
-
-// --- 3. LOGIC TOÁN HỌC ---
-function generateProblem() {
-    targetX = Math.floor(Math.random() * 11) + 10;
-    targetY = Math.floor(Math.random() * 11) + 10;
-    const weights = [1, 1.5, 2, 2.5, 3, 4];
-    let a = weights[Math.floor(Math.random() * 3)];
-    let b = weights[Math.floor(Math.random() * 3) + 3];
-    let totalW = (targetX * a) + (targetY * b);
-
-    document.getElementById('problem-desc').innerHTML = 
-        `Nhiệm vụ: Tổng <b>${targetX + targetY}</b> con. Nặng <b>${totalW.toFixed(1)}kg</b>. <br> Gà <b>${a}kg</b>, Vịt <b>${b}kg</b>.`;
-    
-    // Tỉ lệ con ngon ngẫu nhiên
-    ga = { quality: Math.floor(targetX * (Math.random() * 0.4 + 0.3)), total: targetX };
-    vit = { quality: Math.floor(targetY * (Math.random() * 0.4 + 0.3)), total: targetY };
-}
-
-function checkPhase1() {
+window.checkPhase1 = function() {
     const x = parseInt(document.getElementById('inputX').value);
     const y = parseInt(document.getElementById('inputY').value);
-    
     if (x === targetX && y === targetY) {
         sounds.success();
-        hideElement('phase1');
-        showElement('phase2');
+        document.getElementById('phase1').classList.add('hidden');
+        document.getElementById('phase2').classList.remove('hidden');
         updateUI();
     } else {
         sounds.fail();
-        const fb = document.getElementById('p1-feedback');
-        fb.innerText = "❌ Sai rồi! Hãy kiểm tra lại hệ phương trình."; 
-        fb.style.color = "#e74c3c";
+        document.getElementById('p1-feedback').innerText = "❌ Sai rồi, hãy tính lại nhé!";
     }
-}
+};
 
-// --- 4. GIAI ĐOẠN THU HOẠCH ---
-function slaughter(type) {
+window.slaughter = function(type) {
     if (clicks <= 0) return;
     let t = (type === 'ga') ? ga : vit;
     if (t.total <= 0) return;
 
-    const log = document.getElementById('game-log');
-    const container = document.querySelector('.container');
-
     if (Math.random() < (t.quality / t.total)) {
-        score++; t.quality--;
-        sounds.success();
-        log.innerText = `✨ Tuyệt vời! Trúng con CHẤT LƯỢNG! 💎`;
-        log.style.color = "#27ae60";
-        // Hiệu ứng rung màn hình khi trúng
-        container.style.animation = "successPop 0.3s ease";
-        setTimeout(() => container.style.animation = "", 300);
+        score++; t.quality--; sounds.success();
+        document.getElementById('game-log').innerText = "✨ Trúng con CHẤT LƯỢNG! 💎";
     } else {
         sounds.click();
-        log.innerText = `🍃 Con này bình thường quá...`;
-        log.style.color = "#7f8c8d";
+        document.getElementById('game-log').innerText = "🍃 Thường thôi, chưa đạt chuẩn...";
     }
+    t.total--; clicks--; updateUI();
+};
+
+function generateProblem() {
+    targetX = Math.floor(Math.random() * 10) + 10;
+    targetY = Math.floor(Math.random() * 10) + 10;
+    const wList = [1.5, 2, 2.5, 3];
+    let a = wList[Math.floor(Math.random() * 2)];
+    let b = wList[Math.floor(Math.random() * 2) + 2];
+    let totalW = (targetX * a) + (targetY * b);
+
+    document.getElementById('problem-desc').innerHTML = 
+        `Tổng <b>${targetX + targetY}</b> con. Cân <b>${totalW.toFixed(1)}kg</b>.<br>Gà <b>${a}kg</b>, Vịt <b>${b}kg</b>.`;
     
-    t.total--; 
-    clicks--; 
-    updateUI();
+    // NGẪU NHIÊN HÓA SỐ CON CHẤT LƯỢNG (Tỉ lệ từ 20% đến 70% mỗi đàn)
+    // Điều này khiến người chơi phải quan sát kỹ "Tỉ lệ đạt chuẩn" trước khi quyết định mổ
+    ga = { 
+        quality: Math.floor(targetX * (Math.random() * 0.5 + 0.2)), 
+        total: targetX 
+    };
+    vit = { 
+        quality: Math.floor(targetY * (Math.random() * 0.5 + 0.2)), 
+        total: targetY 
+    };
 }
 
+function refreshPermanentHighScore() {
+    const savedScore = localStorage.getItem('tdn_farm_highscore') || 0;
+    const globalScoreElem = document.getElementById('global-high-score');
+    if (globalScoreElem) {
+        globalScoreElem.innerText = savedScore;
+    }
+}
+
+// 2. Cập nhật logic trong updateUI
 function updateUI() {
+    // Hiển thị dạng phân số (Số con ngon hiện có / Tổng số con còn lại trong đàn)
     document.getElementById('ga_stat').innerText = `${ga.quality}/${ga.total}`;
     document.getElementById('vit_stat').innerText = `${vit.quality}/${vit.total}`;
     document.getElementById('clicks').innerText = clicks;
-    
+
     if (clicks === 0) {
         sounds.win();
-        hideElement('action-buttons');
-        showElement('final-stats');
+        
+        // Logic lưu High Score
+        let currentHighScore = parseInt(localStorage.getItem('tdn_farm_highscore')) || 0;
+        if (score > currentHighScore) {
+            currentHighScore = score;
+            localStorage.setItem('tdn_farm_highscore', currentHighScore);
+        }
+
+        document.getElementById('final-stats').classList.remove('hidden');
         document.getElementById('final-score').innerText = score;
-        document.getElementById('rank-text').innerText = score >= 3 ? "🌟 CHỦ TRẠI THÔNG THÁI!" : "🤠 CỐ GẮNG HƠN NHÉ!";
+        document.getElementById('high-score').innerText = currentHighScore;
+        
+        // Phân cấp danh hiệu dựa trên điểm số
+        let rank = "🤠 Cố gắng ván sau nhé!";
+        if (score >= 5) rank = "🏆 Huyền thoại nông gia!";
+        else if (score >= 3) rank = "🌟 Siêu cấp chủ trại!";
+        
+        document.getElementById('rank-text').innerText = rank;
     }
 }
-
-// --- 5. HƯỚNG DẪN & LATEX ---
 window.toggleHelp = function() {
-    if (audioCtx.state === 'suspended') audioCtx.resume();
+    initAudio();
     const modal = document.getElementById('help-modal');
     modal.classList.toggle('hidden');
-    
-    if (!modal.classList.contains('hidden') && window.MathJax) {
-        window.MathJax.typesetPromise().catch((err) => console.log(err));
-    }
+    if (!modal.classList.contains('hidden') && window.MathJax) window.MathJax.typesetPromise();
 };
 
-// Đóng modal khi bấm ra ngoài
-window.onclick = function(event) {
-    const modal = document.getElementById('help-modal');
-    if (event.target == modal) {
-        modal.classList.add('hidden');
-    }
+window.onload = () => { 
+    generateProblem(); 
+    clicks = 5; 
+    score = 0; 
+    refreshPermanentHighScore(); 
 };
