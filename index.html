@@ -4,8 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nông Trại Toán Học 9 - TĐN</title>
-    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
-    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -20,27 +18,27 @@
             <img src="https://upload.wikimedia.org/wikipedia/commons/f/fd/Logo_of_the_Tr%E1%BA%A7n_%C4%90%E1%BA%A1i_Ngh%C4%A9a_High_School_for_the_Gifted.svg" alt="Logo Trần Đại Nghĩa" class="school-logo">
             <h1 class="main-title">🌾 Nông Trại Toán Học 🚜</h1>
             <div class="permanent-highscore">
-            🏆 Kỷ lục: <span id="global-high-score">0</span>
+                🏆 Kỷ lục: <span id="global-high-score">0</span>
             </div>
         </header>
 
         <div style="text-align: right; margin-bottom: 20px;">
-            <button id="help-btn" class="icon-btn" onclick="toggleHelp()">❓ Hướng dẫn chơi</button>
+            <button id="help-btn" class="icon-btn" onclick="toggleHelp()">❓ Hướng dẫn</button>
         </div>
 
         <div id="story-intro" class="box intro-card">
             <h3>👨‍🌾 Lời kêu cứu từ bác nông dân!</h3>
-            <p style="text-align: left; line-height: 1.5;">"Chào con, bác đang gặp rắc rối lớn! Đàn gà và vịt của bác đã đến tuổi xuất chuồng, nhưng xe tải của thành phố chỉ chấp nhận chở đúng số cân nặng quy định để đảm bảo an toàn giao thông.</p>
-            <p style="text-align: left; line-height: 1.5;">Bác già rồi nên lú lẫn, không nhớ nổi trong chuồng có bao nhiêu con mỗi loại. Con hãy giúp bác phân loại, sau đó hãy chọn ra những con chất lượng nhất để gửi đi nhé!"</p>            <button class="primary-btn btn-lg" onclick="startGame()">Cháu sẽ giúp bác! 🚛</button>
+            <p style="text-align: left; line-height: 1.5;">"Chào con, bác đang gặp rắc rối lớn! Đàn gà và vịt của bác đã đến tuổi xuất chuồng. Con hãy giúp bác phân loại và thu hoạch nhé!"</p>
+            <button class="primary-btn btn-lg" onclick="startGame()">Cháu sẽ giúp bác! 🚛</button>
         </div>
 
         <div id="phase1" class="hidden phase-container">
             <h2 class="phase-header">📍 Bước 1: Phân Chia</h2>
             <div class="box math-section">
-                <p id="problem-desc" class="problem-text">Đang tính toán dữ liệu nông trại...</p>
+                <p id="problem-desc" class="problem-text">Đang chuẩn bị dữ liệu...</p>
                 <div class="input-group">
-                    <div class="input-field"><span>🐔</span><input type="number" id="inputX" placeholder="Gà"></div>
-                    <div class="input-field"><span>🦆</span><input type="number" id="inputY" placeholder="Vịt"></div>
+                    <div class="input-field"><span>🐔 Gà</span><input type="number" id="inputX"></div>
+                    <div class="input-field"><span>🦆 Vịt</span><input type="number" id="inputY"></div>
                 </div>
                 <button class="primary-btn btn-lg" onclick="checkPhase1()">🚀 Xác nhận số lượng</button>
                 <p id="p1-feedback"></p>
@@ -49,9 +47,7 @@
 
         <div id="phase2" class="hidden phase-container">
             <h2 class="phase-header">📍 Bước 2: Thu Hoạch</h2>
-            
-            <div id="game-log" class="log-message box">Chào chủ trại! Hãy bắt đầu tuyển chọn. 🔪</div>
-            
+            <div id="game-log" class="log-message box">Hãy chọn đàn có tỷ lệ tốt nhất!</div>
             <div class="stats-container">
                 <div class="stat-box chicken">
                     <strong>Đàn Gà 🐔</strong>
@@ -62,36 +58,33 @@
                     <span id="vit_stat" class="value"></span>
                 </div>
             </div>
-            
             <p class="clicks-remainHighlight">⏳ Lượt mổ còn lại: <span id="clicks"></span></p>
-
             <div id="action-buttons">
-                <button class="btn-ga action-btn btn-lg" onclick="slaughter('ga')">🪓 Mổ Gà</button>
-                <button class="btn-vit action-btn btn-lg" onclick="slaughter('vit')">🪓 Mổ Vịt</button>
+                <button class="btn-ga action-btn" onclick="slaughter('ga')">🪓 Mổ Gà</button>
+                <button class="btn-vit action-btn" onclick="slaughter('vit')">🪓 Mổ Vịt</button>
             </div>
-
             <div id="final-stats" class="final-card hidden">
                 <h3>📊 BÁO CÁO THU HOẠCH</h3>
-                <p>💎 Tổng con chất lượng: <span id="final-score"></span> con</p>
-                <p style="color: #d35400; font-weight: bold;">🏆 Kỷ lục của bạn: <span id="high-score">0</span> con</p> <p id="rank-text"></p>
-                <button class="restart-btn primary-btn btn-lg" onclick="restartGame()">🔄 LÀM VÁN MỚI</button>
+                <p>💎 Điểm chất lượng: <span id="final-score"></span></p>
+                <p style="color: #d35400; font-weight: bold;">🏆 Kỷ lục: <span id="high-score">0</span></p>
+                <p id="rank-text"></p>
+                <button class="primary-btn" onclick="restartGame()">🔄 LÀM VÁN MỚI</button>
             </div>
         </div>
 
         <div id="help-modal" class="modal hidden">
             <div class="modal-content box">
                 <span class="close" onclick="toggleHelp()">&times;</span>
-                <h3 style="color: #2c3e50; text-align: center; margin-top: 0;">📜 Cẩm Nang Học Tập</h3>
+                <h3 style="text-align: center; margin-top: 0;">📜 Cẩm Nang</h3>
                 <div class="modal-body">
-                    <h4>Nhiệm vụ Bước 1: Phân Chia Khu Vực</h4>
-                    <p>Thiết lập và giải hệ phương trình từ dữ liệu đề bài:</p>
-                    <div class="latex-box">
-                        \[ \begin{cases} x + y = \text{Tổng số con} \\ a \cdot x + b \cdot y = \text{Tổng kg} \end{cases} \]
-                    </div>
-                    <h4>Nhiệm vụ Bước 2: Tuyển Chọn</h4>
-                    <p>Chọn mổ đàn có tỉ lệ <b>Con ngon / Tổng số </b> cao hơn để đạt điểm 💎 tối đa.</p>
+                    <p><b>Giải hệ phương trình:</b></p>
+                    <p style="background: #eee; padding: 10px; border-radius: 8px;">
+                        1) X + Y = Tổng số con<br>
+                        2) a*X + b*Y = Tổng số kg
+                    </p>
+                    <p><b>Mẹo thu hoạch:</b> Chọn đàn có tỷ lệ (Số ngon / Tổng số) lớn hơn để dễ trúng điểm.</p>
                 </div>
-                <button class="primary-btn" onclick="toggleHelp()">Cháu đã rõ! 🤠</button>
+                <button class="primary-btn" onclick="toggleHelp()">Đã hiểu! 🤠</button>
             </div>
         </div>
     </div>
