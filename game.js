@@ -1,4 +1,4 @@
-let ga, vit, clicks, targetX, targetY, score;
+let ga, vit, clicks, targetX, targetY, score = 0;
 let audioCtx;
 
 function initAudio() {
@@ -26,28 +26,30 @@ const sounds = {
     win: () => [440, 554, 659, 880].forEach((f, i) => setTimeout(() => playSound(f, 'sine', 0.4), i * 150))
 };
 
+function refreshPermanentHighScore() {
+    const saved = sessionStorage.getItem('tdn_farm_highscore') || 0;
+    const elem = document.getElementById('global-high-score');
+    if (elem) elem.innerText = saved;
+}
+
 window.startGame = function() {
-    initAudio(); sounds.click();
+    initAudio(); 
+    sounds.click();
     document.getElementById('story-intro').classList.add('hidden');
     document.getElementById('phase1').classList.remove('hidden');
 };
 
 window.restartGame = function() {
-    sounds.click();
     score = 0;
-    // Ngẫu nhiên số lượt mổ từ 3 đến 6 lượt để tạo độ khó khác nhau mỗi ván
-    clicks = Math.floor(Math.random() * 4) + 3; 
+    clicks = Math.floor(Math.random() * 3) + 3; // 3-5 lượt
     generateProblem();
-    
     document.getElementById('phase2').classList.add('hidden');
     document.getElementById('final-stats').classList.add('hidden');
     document.getElementById('phase1').classList.remove('hidden');
     document.getElementById('p1-feedback').innerText = '';
     document.getElementById('inputX').value = '';
     document.getElementById('inputY').value = '';
-    
-    // Cập nhật hiển thị Kỷ lục vĩnh viễn trên Header nếu có
-    if (typeof refreshPermanentHighScore === "function") refreshPermanentHighScore();
+    refreshPermanentHighScore();
 };
 
 window.checkPhase1 = function() {
@@ -60,7 +62,7 @@ window.checkPhase1 = function() {
         updateUI();
     } else {
         sounds.fail();
-        document.getElementById('p1-feedback').innerText = "❌ Sai rồi, hãy tính lại nhé!";
+        document.getElementById('p1-feedback').innerText = "❌ Sai rồi, tính lại nhé!";
     }
 };
 
@@ -74,81 +76,50 @@ window.slaughter = function(type) {
         document.getElementById('game-log').innerText = "✨ Trúng con CHẤT LƯỢNG! 💎";
     } else {
         sounds.click();
-        document.getElementById('game-log').innerText = "🍃 Thường thôi, chưa đạt chuẩn...";
+        document.getElementById('game-log').innerText = "🍃 Thường thôi...";
     }
     t.total--; clicks--; updateUI();
 };
 
 function generateProblem() {
-    targetX = Math.floor(Math.random() * 10) + 10;
-    targetY = Math.floor(Math.random() * 10) + 10;
-    const wList = [1.5, 2, 2.5, 3];
-    let a = wList[Math.floor(Math.random() * 2)];
-    let b = wList[Math.floor(Math.random() * 2) + 2];
+    targetX = Math.floor(Math.random() * 10) + 5;
+    targetY = Math.floor(Math.random() * 10) + 5;
+    const weights = [1.5, 2, 2.5, 3];
+    let a = weights[Math.floor(Math.random() * 2)];
+    let b = weights[Math.floor(Math.random() * 2) + 2];
     let totalW = (targetX * a) + (targetY * b);
 
     document.getElementById('problem-desc').innerHTML = 
         `Tổng <b>${targetX + targetY}</b> con. Cân <b>${totalW.toFixed(1)}kg</b>.<br>Gà <b>${a}kg</b>, Vịt <b>${b}kg</b>.`;
     
-    // NGẪU NHIÊN HÓA SỐ CON CHẤT LƯỢNG (Tỉ lệ từ 20% đến 70% mỗi đàn)
-    // Điều này khiến người chơi phải quan sát kỹ "Tỉ lệ đạt chuẩn" trước khi quyết định mổ
-    ga = { 
-        quality: Math.floor(targetX * (Math.random() * 0.5 + 0.2)), 
-        total: targetX 
-    };
-    vit = { 
-        quality: Math.floor(targetY * (Math.random() * 0.5 + 0.2)), 
-        total: targetY 
-    };
+    ga = { quality: Math.floor(targetX * (Math.random() * 0.4 + 0.3)), total: targetX };
+    vit = { quality: Math.floor(targetY * (Math.random() * 0.4 + 0.3)), total: targetY };
 }
 
-function refreshPermanentHighScore() {
-    const savedScore = localStorage.getItem('tdn_farm_highscore') || 0;
-    const globalScoreElem = document.getElementById('global-high-score');
-    if (globalScoreElem) {
-        globalScoreElem.innerText = savedScore;
-    }
-}
-
-// 2. Cập nhật logic trong updateUI
 function updateUI() {
-    // Hiển thị dạng phân số (Số con ngon hiện có / Tổng số con còn lại trong đàn)
     document.getElementById('ga_stat').innerText = `${ga.quality}/${ga.total}`;
     document.getElementById('vit_stat').innerText = `${vit.quality}/${vit.total}`;
     document.getElementById('clicks').innerText = clicks;
 
     if (clicks === 0) {
         sounds.win();
-        
-        // Logic lưu High Score
-        let currentHighScore = parseInt(localStorage.getItem('tdn_farm_highscore')) || 0;
-        if (score > currentHighScore) {
-            currentHighScore = score;
-            localStorage.setItem('tdn_farm_highscore', currentHighScore);
+        let currentHigh = parseInt(sessionStorage.getItem('tdn_farm_highscore')) || 0;
+        if (score > currentHigh) {
+            currentHigh = score;
+            sessionStorage.setItem('tdn_farm_highscore', currentHigh);
         }
-
         document.getElementById('final-stats').classList.remove('hidden');
         document.getElementById('final-score').innerText = score;
-        document.getElementById('high-score').innerText = currentHighScore;
-        
-        // Phân cấp danh hiệu dựa trên điểm số
-        let rank = "🤠 Cố gắng ván sau nhé!";
-        if (score >= 5) rank = "🏆 Huyền thoại nông gia!";
-        else if (score >= 3) rank = "🌟 Siêu cấp chủ trại!";
-        
-        document.getElementById('rank-text').innerText = rank;
+        document.getElementById('high-score').innerText = currentHigh;
+        document.getElementById('rank-text').innerText = score >= 4 ? "🌟 Siêu cấp chủ trại!" : "🤠 Cố gắng nhé!";
+        refreshPermanentHighScore();
     }
 }
-window.toggleHelp = function() {
-    initAudio();
-    const modal = document.getElementById('help-modal');
-    modal.classList.toggle('hidden');
-    if (!modal.classList.contains('hidden') && window.MathJax) window.MathJax.typesetPromise();
-};
+
+window.toggleHelp = () => document.getElementById('help-modal').classList.toggle('hidden');
 
 window.onload = () => { 
     generateProblem(); 
     clicks = 5; 
-    score = 0; 
     refreshPermanentHighScore(); 
 };
