@@ -4,13 +4,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nông Trại Toán Học 9 - TĐN</title>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     
-    <aside class="motto-side motto-left">
-        <p>Học để biết</p>
-        <p>Học để làm</p>
+    <aside class="motto-side motto-container-left">
+        <div class="motto-group">
+            <p>Học để biết</p>
+            <p>Học để làm</p>
+        </div>
+        <div class="motto-group" style="margin-top: 40px; border-top: 1px solid #ddd; padding-top: 20px;">
+            <p>Học để khẳng định mình</p>
+            <p>Học để cùng chung sống</p>
+        </div>
     </aside>
 
     <div class="container">
@@ -22,20 +30,16 @@
             </div>
         </header>
 
-        <div style="text-align: right; margin-bottom: 20px;">
-            <button id="help-btn" class="icon-btn" onclick="toggleHelp()">❓ Hướng dẫn</button>
-        </div>
-
         <div id="story-intro" class="box intro-card">
-            <h3>👨‍🌾 Lời kêu cứu từ bác nông dân!</h3>
+            <h3>👨‍🌾 Lời kêu cứu!</h3>
             <p style="text-align: left; line-height: 1.5;">"Chào con, bác đang gặp rắc rối lớn! Đàn gà và vịt của bác đã đến tuổi xuất chuồng. Con hãy giúp bác phân loại và thu hoạch nhé!"</p>
-            <button class="primary-btn btn-lg" onclick="startGame()">Cháu sẽ giúp bác! 🚛</button>
+            <button class="primary-btn btn-lg" onclick="startGame()">Cháu giúp ngay! 🚛</button>
         </div>
 
         <div id="phase1" class="hidden phase-container">
-            <h2 class="phase-header">📍 Bước 1: Phân Chia</h2>
+            <h2 class="phase-header">📍 Giai đoạn 1: Phân Chia</h2>
             <div class="box math-section">
-                <p id="problem-desc" class="problem-text">Đang chuẩn bị dữ liệu...</p>
+                <p id="problem-desc" class="problem-text">Đang tính toán...</p>
                 <div class="input-group">
                     <div class="input-field"><span>🐔 Gà</span><input type="number" id="inputX"></div>
                     <div class="input-field"><span>🦆 Vịt</span><input type="number" id="inputY"></div>
@@ -46,7 +50,7 @@
         </div>
 
         <div id="phase2" class="hidden phase-container">
-            <h2 class="phase-header">📍 Bước 2: Thu Hoạch</h2>
+            <h2 class="phase-header">📍 Giai đoạn 2: Thu Hoạch</h2>
             <div id="game-log" class="log-message box">Hãy chọn đàn có tỷ lệ tốt nhất!</div>
             <div class="stats-container">
                 <div class="stat-box chicken">
@@ -64,34 +68,29 @@
                 <button class="btn-vit action-btn" onclick="slaughter('vit')">🪓 Mổ Vịt</button>
             </div>
             <div id="final-stats" class="final-card hidden">
-                <h3>📊 BÁO CÁO THU HOẠCH</h3>
-                <p>💎 Điểm chất lượng: <span id="final-score"></span></p>
+                <h3>📊 BÁO CÁO</h3>
+                <p>💎 Điểm: <span id="final-score"></span></p>
                 <p style="color: #d35400; font-weight: bold;">🏆 Kỷ lục: <span id="high-score">0</span></p>
                 <p id="rank-text"></p>
-                <button class="primary-btn" onclick="restartGame()">🔄 LÀM VÁN MỚI</button>
-            </div>
-        </div>
-
-        <div id="help-modal" class="modal hidden">
-            <div class="modal-content box">
-                <span class="close" onclick="toggleHelp()">&times;</span>
-                <h3 style="text-align: center; margin-top: 0;">📜 Cẩm Nang</h3>
-                <div class="modal-body">
-                    <p><b>Giải hệ phương trình:</b></p>
-                    <p style="background: #eee; padding: 10px; border-radius: 8px;">
-                        1) X + Y = Tổng số con<br>
-                        2) a*X + b*Y = Tổng số kg
-                    </p>
-                    <p><b>Mẹo thu hoạch:</b> Chọn đàn có tỷ lệ (Số ngon / Tổng số) lớn hơn để dễ trúng điểm.</p>
-                </div>
-                <button class="primary-btn" onclick="toggleHelp()">Đã hiểu! 🤠</button>
+                <button class="primary-btn" onclick="restartGame()">🔄 CHƠI LẠI</button>
             </div>
         </div>
     </div>
 
-    <aside class="motto-side motto-right">
-        <p>Học để khẳng định mình</p>
-        <p>Học để cùng chung sống</p>
+    <aside class="sidebar-help">
+        <div class="sidebar-content box">
+            <h3>📜 Hướng Dẫn</h3>
+            <div class="step-desc">
+                <p><b>📍 Giai đoạn 1:</b> Bạn cần giải hệ phương trình để tìm ra số lượng chính xác của từng loại đàn:</p>
+                <div class="latex-box">
+                    \[\begin{cases} x + y = \sum \text{con} \\ ax + by = \sum \text{kg} \end{cases}\]
+                </div>
+            </div>
+            <div class="step-desc" style="margin-top: 15px;">
+                <p><b>📍 Giai đoạn 2:</b> Bạn có số lượt mổ giới hạn. Hãy quan sát tỉ lệ hiển thị (ví dụ 5/15) và chọn đàn có xác suất trúng <b>con ngon</b> cao hơn:</p>
+                <p style="text-align: center; font-style: italic;">P = \(\frac{\text{Con chất lượng}}{\text{Tổng số con}}\)</p>
+            </div>
+        </div>
     </aside>
 
     <script src="game.js"></script>
