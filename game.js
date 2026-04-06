@@ -41,7 +41,7 @@ window.startGame = function() {
 
 window.restartGame = function() {
     score = 0;
-    clicks = Math.floor(Math.random() * 3) + 3; // 3-5 lượt
+    clicks = Math.floor(Math.random() * 3) + 3;
     generateProblem();
     document.getElementById('phase2').classList.add('hidden');
     document.getElementById('final-stats').classList.add('hidden');
@@ -62,7 +62,7 @@ window.checkPhase1 = function() {
         updateUI();
     } else {
         sounds.fail();
-        document.getElementById('p1-feedback').innerText = "❌ Sai rồi, tính lại nhé!";
+        document.getElementById('p1-feedback').innerText = "❌ Tính toán lại chút nào!";
     }
 };
 
@@ -90,7 +90,7 @@ function generateProblem() {
     let totalW = (targetX * a) + (targetY * b);
 
     document.getElementById('problem-desc').innerHTML = 
-        `Tổng <b>${targetX + targetY}</b> con. Cân <b>${totalW.toFixed(1)}kg</b>.<br>Gà <b>${a}kg</b>, Vịt <b>${b}kg</b>.`;
+        `Tổng <b>${targetX + targetY}</b> con. Nặng <b>${totalW.toFixed(1)}kg</b>.<br>Gà <b>${a}kg</b>, Vịt <b>${b}kg</b>.`;
     
     ga = { quality: Math.floor(targetX * (Math.random() * 0.4 + 0.3)), total: targetX };
     vit = { quality: Math.floor(targetY * (Math.random() * 0.4 + 0.3)), total: targetY };
@@ -115,8 +115,6 @@ function updateUI() {
         refreshPermanentHighScore();
     }
 }
-
-window.toggleHelp = () => document.getElementById('help-modal').classList.toggle('hidden');
 
 window.onload = () => { 
     generateProblem(); 
